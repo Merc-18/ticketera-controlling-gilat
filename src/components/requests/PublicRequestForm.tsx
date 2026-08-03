@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRequests } from '../../hooks/useRequests'
 
-const AREAS   = ['AASS', 'ATC', 'DDC', 'QA', 'SAQ']
+const AREAS   = ['AASS', 'ATC', 'DDC', 'GERE', 'QA', 'SAQ']
 const ORIGINS = ['Cliente', 'Externo', 'Interno', 'Regulatorio', 'Otro']
 const SYSTEMS = [
   'BD (Access, Sql)', 'Excel', 'Power Apps',

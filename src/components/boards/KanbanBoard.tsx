@@ -77,6 +77,7 @@ export default function KanbanBoard({ boardType, openProjectId, onOpenHandled }:
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [priorityFilter, setPriorityFilter] = useState(() => localStorage.getItem('kanban_priorityFilter') || 'all')
   const [areaFilter, setAreaFilter]         = useState(() => localStorage.getItem('kanban_areaFilter') || 'all')
+  const [userFilter, setUserFilter]         = useState(() => localStorage.getItem('kanban_userFilter') || 'all')
   const [myProjectsOnly, setMyProjectsOnly] = useState(() => localStorage.getItem('kanban_myProjectsOnly') === 'true')
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -86,6 +87,7 @@ export default function KanbanBoard({ boardType, openProjectId, onOpenHandled }:
 
   useEffect(() => { localStorage.setItem('kanban_priorityFilter', priorityFilter) }, [priorityFilter])
   useEffect(() => { localStorage.setItem('kanban_areaFilter', areaFilter) },         [areaFilter])
+  useEffect(() => { localStorage.setItem('kanban_userFilter', userFilter) },         [userFilter])
   useEffect(() => { localStorage.setItem('kanban_myProjectsOnly', String(myProjectsOnly)) }, [myProjectsOnly])
   useEffect(() => { localStorage.setItem('kanban_viewMode', viewMode) },              [viewMode])
   useEffect(() => { setSelectedIds([]) }, [statusFilter])
@@ -118,11 +120,23 @@ export default function KanbanBoard({ boardType, openProjectId, onOpenHandled }:
     if (priorityFilter !== 'all' && project.priority !== priorityFilter) return false
     const area = (project as any).requests?.requester_area
     if (areaFilter !== 'all' && area !== areaFilter) return false
-    if (myProjectsOnly && currentUser) {
-      const flows: any[] = (project as any).project_flows ?? []
-      const isAssigned = flows.some(f => f.assigned_to === currentUser.id)
-      if (!isAssigned) return false
+
+    // Filtro por responsable / usuario
+    if (canManage) {
+      if (userFilter === 'me' && currentUser) {
+        const flows: any[] = (project as any).project_flows ?? []
+        if (!flows.some(f => f.assigned_to === currentUser.id)) return false
+      } else if (userFilter !== 'all') {
+        const flows: any[] = (project as any).project_flows ?? []
+        if (!flows.some(f => f.assigned_to === userFilter)) return false
+      }
+    } else {
+      if (myProjectsOnly && currentUser) {
+        const flows: any[] = (project as any).project_flows ?? []
+        if (!flows.some(f => f.assigned_to === currentUser.id)) return false
+      }
     }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       const titleMatch = project.title?.toLowerCase().includes(q)
@@ -155,7 +169,7 @@ export default function KanbanBoard({ boardType, openProjectId, onOpenHandled }:
     }
   }
 
-  const hasFilters = priorityFilter !== 'all' || areaFilter !== 'all' || myProjectsOnly || searchQuery.trim() !== ''
+  const hasFilters = priorityFilter !== 'all' || areaFilter !== 'all' || (canManage ? userFilter !== 'all' : myProjectsOnly) || searchQuery.trim() !== ''
   const filteredCount = filteredProjects.length
   const totalCount = projects.length
 
@@ -276,22 +290,44 @@ export default function KanbanBoard({ boardType, openProjectId, onOpenHandled }:
               ))}
             </select>
 
-            {/* Mis proyectos toggle */}
-            <button
-              onClick={() => setMyProjectsOnly(v => !v)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
-                myProjectsOnly
-                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              👤 Mis proyectos
-            </button>
+            {/* Filtro por Responsable / Usuario */}
+            {canManage ? (
+              <select
+                value={userFilter}
+                onChange={e => setUserFilter(e.target.value)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition cursor-pointer outline-none ${
+                  userFilter !== 'all'
+                    ? 'border-indigo-400 bg-indigo-50 text-indigo-700 font-semibold'
+                    : 'border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <option value="all">👤 Todos los responsables</option>
+                <option value="me">👤 Mis proyectos</option>
+                <optgroup label="Filtrar por Usuario">
+                  {activeUsers.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.full_name} ({u.role})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            ) : (
+              <button
+                onClick={() => setMyProjectsOnly(v => !v)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
+                  myProjectsOnly
+                    ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                    : 'border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                👤 Mis proyectos
+              </button>
+            )}
 
             {hasFilters && (
               <>
                 <button
-                  onClick={() => { setPriorityFilter('all'); setAreaFilter('all'); setMyProjectsOnly(false); setSearchQuery('') }}
+                  onClick={() => { setPriorityFilter('all'); setAreaFilter('all'); setUserFilter('all'); setMyProjectsOnly(false); setSearchQuery('') }}
                   className="px-3 py-1.5 rounded-full text-sm font-medium border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition"
                 >
                   ✕ Limpiar

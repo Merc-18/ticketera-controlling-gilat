@@ -48,6 +48,7 @@ export const AREA_COLORS: Record<string, string> = {
   PMO:         'bg-cyan-100 text-cyan-800 border-cyan-200',
   OC:          'bg-lime-100 text-lime-800 border-lime-200',
   Controlling: 'bg-violet-100 text-violet-800 border-violet-200',
+  GERE:        'bg-rose-100 text-rose-800 border-rose-200',
 }
 
 export const PHASE_LABELS: Record<string, string> = {
@@ -64,4 +65,5 @@ export const PHASE_LABELS: Record<string, string> = {
   deployed:       'Deployed',
 }
 
-export const AREAS = ['AASS', 'ATC', 'Controlling', 'DDC', 'OC', 'PMO', 'QA', 'SAQ']
+export const AREAS = ['AASS', 'ATC', 'Controlling', 'DDC', 'GERE', 'OC', 'PMO', 'QA', 'SAQ']
+
