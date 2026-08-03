@@ -17,7 +17,7 @@ export interface DashboardStats {
     avgCycleTime: number | null
     avgLeadTime: number | null
   }
-  completedByMonth: { month: string; total: number; onTime: number }[]
+  completedByQuarter: { quarter: string; total: number; onTime: number }[]
 }
 
 export function useDashboardData(periodDays: number | null = null, areaFilter: string | null = null, typeFilter: string | null = null) {
@@ -99,11 +99,18 @@ export function useDashboardData(periodDays: number | null = null, areaFilter: s
     let onTime = 0, late = 0
     const cycleTimes: number[] = []
     const leadTimes: number[] = []
-    const monthMap: Record<string, { total: number; onTime: number }> = {}
+    const quarterMap: Record<string, { total: number; onTime: number }> = {
+      'Q1': { total: 0, onTime: 0 },
+      'Q2': { total: 0, onTime: 0 },
+      'Q3': { total: 0, onTime: 0 },
+      'Q4': { total: 0, onTime: 0 },
+    }
 
     for (const log of slaLogs ?? []) {
       const d = log.details as any
-      const month = (log.created_at as string).slice(0, 7)
+      const date = new Date(log.created_at)
+      const qNum = Math.floor(date.getMonth() / 3) + 1
+      const qKey = `Q${qNum}`
 
       if (d?.on_time === true) onTime++
       else if (d?.on_time === false) late++
@@ -112,9 +119,9 @@ export function useDashboardData(periodDays: number | null = null, areaFilter: s
       if (ct !== undefined) cycleTimes.push(Number(ct))
       if (d?.lead_time_days !== undefined) leadTimes.push(Number(d.lead_time_days))
 
-      if (!monthMap[month]) monthMap[month] = { total: 0, onTime: 0 }
-      monthMap[month].total++
-      if (d?.on_time === true) monthMap[month].onTime++
+      if (!quarterMap[qKey]) quarterMap[qKey] = { total: 0, onTime: 0 }
+      quarterMap[qKey].total++
+      if (d?.on_time === true) quarterMap[qKey].onTime++
     }
 
     const slaTotal = onTime + late
@@ -122,19 +129,17 @@ export function useDashboardData(periodDays: number | null = null, areaFilter: s
     const avg = (arr: number[]) =>
       arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null
 
-    const completedByMonth = Object.entries(monthMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-6)
-      .map(([month, v]) => ({
-        month: new Date(month + '-15').toLocaleDateString('es-PE', { month: 'short', year: '2-digit' }),
-        ...v,
-      }))
+    const completedByQuarter = ['Q1', 'Q2', 'Q3', 'Q4'].map(q => ({
+      quarter: q,
+      total: quarterMap[q].total,
+      onTime: quarterMap[q].onTime,
+    }))
 
     setStats({
       total: projects.length,
       byStatus, byPriority, byArea, byType, blocked, overdue,
       sla: { total: slaTotal, onTime, late, rate: slaRate, avgCycleTime: avg(cycleTimes), avgLeadTime: avg(leadTimes) },
-      completedByMonth,
+      completedByQuarter,
     })
     setLoading(false)
   }

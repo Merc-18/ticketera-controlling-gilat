@@ -41,6 +41,7 @@ export default function ProjectModal({ project, flows, onClose, onUpdate, onDele
     title: project.title,
     description: project.description,
     priority: project.priority,
+    project_type: project.project_type,
     start_date: project.start_date ?? '',
     due_date: project.due_date ?? '',
     requester_area: project.requests?.requester_area ?? '',
@@ -97,6 +98,7 @@ export default function ProjectModal({ project, flows, onClose, onUpdate, onDele
         title: editData.title,
         description: editData.description,
         priority: editData.priority as Project['priority'],
+        project_type: editData.project_type as Project['project_type'],
         start_date: editData.start_date || undefined,
         due_date: editData.due_date || undefined,
       })
@@ -416,24 +418,49 @@ export default function ProjectModal({ project, flows, onClose, onUpdate, onDele
                 )}
               </div>
 
-              {/* Prioridad y área (edit mode) */}
+              {/* Prioridad y Tipo de Flujo (edit mode) */}
               {editMode && (
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Prioridad</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {PRIORITY_OPTIONS.map(opt => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setEditData(prev => ({ ...prev, priority: opt.value as Project['priority'] }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-                          editData.priority === opt.value
-                            ? opt.color + ' ring-2 ring-offset-1 ring-blue-400'
-                            : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2 text-sm">Prioridad</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {PRIORITY_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setEditData(prev => ({ ...prev, priority: opt.value as Project['priority'] }))}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                            editData.priority === opt.value
+                              ? opt.color + ' ring-2 ring-offset-1 ring-blue-400'
+                              : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2 text-sm">Tipo de Flujo</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {[
+                        { value: 'development',    label: '💻 Desarrollo',    color: 'bg-blue-100 text-blue-800 border-blue-200' },
+                        { value: 'administrative', label: '📋 Administrativo', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+                        { value: 'dual',           label: '🔀 Ambos (Dual)',    color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setEditData(prev => ({ ...prev, project_type: opt.value as Project['project_type'] }))}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                            editData.project_type === opt.value
+                              ? opt.color + ' ring-2 ring-offset-1 ring-blue-400 font-bold'
+                              : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

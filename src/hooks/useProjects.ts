@@ -90,6 +90,43 @@ export function useProjects() {
 
       if (error) throw error
 
+      // Si cambió el tipo de proyecto, ajustar los flujos en project_flows
+      if (updates.project_type && current?.project_type !== updates.project_type) {
+        const { data: existingFlows } = await supabase
+          .from('project_flows')
+          .select('*')
+          .eq('project_id', projectId)
+
+        const flows = existingFlows ?? []
+        const hasDev = flows.some(f => f.flow_type === 'development')
+        const hasAdmin = flows.some(f => f.flow_type === 'administrative')
+
+        if (updates.project_type === 'development') {
+          if (hasAdmin) {
+            await supabase.from('project_flows').delete().eq('project_id', projectId).eq('flow_type', 'administrative')
+          }
+          if (!hasDev) {
+            await supabase.from('project_flows').insert([{ project_id: projectId, flow_type: 'development', current_phase: 'backlog', progress: 0 }])
+          }
+        } else if (updates.project_type === 'administrative') {
+          if (hasDev) {
+            await supabase.from('project_flows').delete().eq('project_id', projectId).eq('flow_type', 'development')
+          }
+          if (!hasAdmin) {
+            await supabase.from('project_flows').insert([{ project_id: projectId, flow_type: 'administrative', current_phase: 'backlog', progress: 0 }])
+          }
+        } else if (updates.project_type === 'dual') {
+          if (!hasDev) {
+            await supabase.from('project_flows').insert([{ project_id: projectId, flow_type: 'development', current_phase: 'backlog', progress: 0 }])
+          }
+          if (!hasAdmin) {
+            await supabase.from('project_flows').insert([{ project_id: projectId, flow_type: 'administrative', current_phase: 'backlog', progress: 0 }])
+          }
+        }
+
+        await logActivity(projectId, 'type_changed', { from: current?.project_type, to: updates.project_type })
+      }
+
       // Registrar actividad según qué cambió
       if (updates.status && current?.status !== updates.status) {
         await logActivity(projectId, 'status_changed', { from: current?.status, to: updates.status })

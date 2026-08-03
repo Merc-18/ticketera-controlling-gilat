@@ -173,30 +173,30 @@ function SLABreakdown({ sla }: { sla: DashboardStats['sla'] }) {
   )
 }
 
-function MonthlyChart({ data }: { data: DashboardStats['completedByMonth'] }) {
+function QuarterlyChart({ data }: { data: DashboardStats['completedByQuarter'] }) {
   const max = Math.max(...data.map(d => d.total), 1)
 
   return (
     <div className="bg-white rounded-xl border p-5 shadow-sm">
-      <h3 className="font-semibold text-gray-800 mb-4 text-sm uppercase tracking-wide">Entregas por Mes</h3>
+      <h3 className="font-semibold text-gray-800 mb-4 text-sm uppercase tracking-wide">Entregas por Quarter (Q1 - Q4)</h3>
       {data.length === 0 ? (
         <p className="text-gray-400 text-sm text-center py-6">Sin datos en el período seleccionado</p>
       ) : (
         <>
-          <div className="flex items-end gap-2 h-28">
+          <div className="flex items-end gap-3 h-28 pt-2">
             {data.map(d => {
               const late      = d.total - d.onTime
-              const heightPct = Math.max((d.total / max) * 100, 4)
+              const heightPct = Math.max((d.total / max) * 100, 6)
               const onTimePct = d.total > 0 ? (d.onTime / d.total) * 100 : 0
               const latePct   = 100 - onTimePct
               return (
-                <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[9px] text-gray-500 font-semibold">{d.total}</span>
-                  <div className="w-full flex flex-col-reverse overflow-hidden rounded" style={{ height: `${heightPct}%` }}>
-                    <div className="bg-green-500" style={{ height: `${onTimePct}%` }} />
-                    {late > 0 && <div className="bg-red-400" style={{ height: `${latePct}%` }} />}
+                <div key={d.quarter} className="flex-1 flex flex-col items-center gap-1">
+                  <span className="text-[10px] text-gray-600 font-bold">{d.total}</span>
+                  <div className="w-full max-w-[48px] flex flex-col-reverse overflow-hidden rounded-md shadow-xs" style={{ height: `${heightPct}%` }}>
+                    <div className="bg-green-500 transition-all duration-500" style={{ height: `${onTimePct}%` }} />
+                    {late > 0 && <div className="bg-red-400 transition-all duration-500" style={{ height: `${latePct}%` }} />}
                   </div>
-                  <span className="text-[9px] text-gray-400 text-center leading-tight">{d.month}</span>
+                  <span className="text-xs font-semibold text-gray-700 text-center mt-1">{d.quarter}</span>
                 </div>
               )
             })}
@@ -418,7 +418,7 @@ export default function DashboardView() {
       {/* SLA breakdown + Tendencia mensual */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SLABreakdown sla={stats.sla} />
-        <MonthlyChart data={stats.completedByMonth} />
+        <QuarterlyChart data={stats.completedByQuarter} />
       </div>
 
       {/* Status breakdown */}
