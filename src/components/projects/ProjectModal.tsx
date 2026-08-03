@@ -694,7 +694,7 @@ export default function ProjectModal({ project, flows, onClose, onUpdate, onDele
                 <button
                   onClick={() => {
                     setEditMode(false)
-                    setEditData({ title: project.title, description: project.description, priority: project.priority, start_date: project.start_date ?? '', due_date: project.due_date ?? '', requester_area: project.requests?.requester_area ?? '', requester_name: project.requests?.requester_name ?? '' })
+                    setEditData({ title: project.title, description: project.description, priority: project.priority, project_type: project.project_type, start_date: project.start_date ?? '', due_date: project.due_date ?? '', requester_area: project.requests?.requester_area ?? '', requester_name: project.requests?.requester_name ?? '' })
                   }}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300"
                 >
